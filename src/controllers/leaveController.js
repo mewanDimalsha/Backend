@@ -21,16 +21,24 @@ const createLeave = async (req, res) => {
         }
 
         // Validate dates
-        const start = new Date(fromDate);
+        
         const end = new Date(toDate);
         const today = new Date();
         today.setHours(0, 0, 0, 0);
+        const start = new Date(fromDate);
+        const startDate = new Date(start.getFullYear(), start.getMonth(), start.getDate());
 
-        if (start < today) {
+        if (startDate < today) {
             return res.status(400).json({
                 message: 'From date must be today or in the future'
             });
         }
+
+        // if (start < today) {
+        //     return res.status(400).json({
+        //         message: 'From date must be today or in the future'
+        //     });
+        // }
 
         if (end < start) {
             return res.status(400).json({

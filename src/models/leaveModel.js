@@ -26,11 +26,10 @@ const leaveValidationSchema = z.object({
 
 // Mongoose schema
 const leaveSchema = new mongoose.Schema({
-    employee: { 
-        type: mongoose.Schema.Types.ObjectId, 
-        ref: 'User',
-        required: true
-    },
+    employee: {
+  type: String,  // Change from ObjectId to String
+  required: true
+},
     fromDate: {
         type: Date,
         required: true
