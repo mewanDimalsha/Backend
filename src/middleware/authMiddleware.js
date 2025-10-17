@@ -1,25 +1,51 @@
 const jwt = require('jsonwebtoken');
 
 const verifyToken = (req, res, next) => {
-    let token;
-    let authHeader = req.headers.Authorization || req.headers.authorization;
-    
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-        token = authHeader.split(' ')[1];
+    try {
+        // Get the token from the Authorization header
+        const authHeader = req.headers.authorization;
+        
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            return res.status(401).json({ 
+                message: 'Access denied. No token provided or invalid format.' 
+            });
+        }
+
+        // Extract the token (remove 'Bearer ' prefix)
+        const token = authHeader.substring(7);
 
         if (!token) {
-            return res.status(401).json({ message: 'Authorization token missing or malformed' });
+            return res.status(401).json({ 
+                message: 'Access denied. No token provided.' 
+            });
         }
 
-        try {
-            const decoded = jwt.verify(token, process.env.JWT_SECRET);
-            req.user = decoded;
-            console.log('Decoded JWT:', decoded);
-            next();
-        } catch (err) {
-            return res.status(403).json({ message: 'Invalid token' });
+        // Verify the token
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        
+        // Add user info to request object
+        req.user = decoded;
+        
+        next();
+    } catch (error) {
+        console.error('Token verification error:', error);
+        
+        if (error.name === 'JsonWebTokenError') {
+            return res.status(401).json({ 
+                message: 'Invalid token.' 
+            });
         }
+        
+        if (error.name === 'TokenExpiredError') {
+            return res.status(401).json({ 
+                message: 'Token expired.' 
+            });
+        }
+        
+        res.status(500).json({ 
+            message: 'Server error during token verification.' 
+        });
     }
-
 };
 
+module.exports = verifyToken;
