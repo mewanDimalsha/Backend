@@ -33,7 +33,13 @@ const register = async (req, res) => {
 
     } catch (error) {
         console.error('Error during registration:', error);
-        res.status(500).json({ message: 'Server error' });
+        
+        // Handle specific MongoDB errors
+        if (error.code === 11000) {
+            return res.status(409).json({ message: 'User already exists' });
+        }
+        
+        res.status(500).json({ message: 'Server error', error: error.message });
     }
 
 }
