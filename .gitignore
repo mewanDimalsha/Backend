@@ -11,12 +11,10 @@ node_modules
 dist
 dist-ssr
 *.local
-.env
 # Coverage reports
 coverage/
 *.lcov
 # Editor directories and files
-.vscode/*
 !.vscode/extensions.json
 .idea
 .DS_Store
@@ -26,3 +24,4 @@ coverage/
 *.sln
 *.sw?
 
+config.bat
