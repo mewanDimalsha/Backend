@@ -72,8 +72,14 @@ const createLeave = async (req, res) => {
 
         await newLeave.save();
 
-        // Populate the employee field for response
-        await newLeave.populate('employee', 'name role');
+        // Get employee details for response
+        let employeeDetails = null;
+        if (newLeave.employee === 'employee') {
+            employeeDetails = await User.findOne({ name: 'employee' }).select('name role');
+        } else {
+            employeeDetails = await User.findById(newLeave.employee).select('name role');
+        }
+        newLeave.employee = employeeDetails;
 
         res.status(201).json({
             message: 'Leave request submitted successfully',
@@ -90,27 +96,49 @@ const createLeave = async (req, res) => {
 const getAllLeaves = async (req, res) => {
     try {
         const { employee } = req.query;
-        const userRole = req.user.role;
-
         let query = {};
-
-        // If user is not admin, they can only see their own leaves
-        if (userRole !== 'admin') {
-            query.employee = req.user.id;
-        } else if (employee) {
-            // Admin can filter by specific employee
-            query.employee = employee;
+        
+        // Add employee filter if provided
+        if (employee) {
+            // First, find users whose names match the search term
+            const matchingUsers = await User.find({ 
+                name: { $regex: employee, $options: 'i' } 
+            }).select('_id name role');
+            
+            if (matchingUsers.length === 0) {
+                // No matching users found, return empty result
+                return res.status(200).json([]);
+            }
+            
+            // Get the IDs of matching users
+            const userIds = matchingUsers.map(user => user._id.toString());
+            query.employee = { $in: userIds };
         }
-
-        const leaves = await Leave.find(query)
-            .populate('employee', 'name role')
-            .sort({ createdAt: -1 });
-
-        res.status(200).json({
-            message: 'Leaves retrieved successfully',
-            leaves,
-            count: leaves.length
-        });
+        
+        const leaves = await Leave.find(query).sort({ createdAt: -1 });
+        
+        // Manually populate employee details
+        const leavesWithEmployeeDetails = await Promise.all(
+            leaves.map(async (leave) => {
+                let employeeDetails = null;
+                
+                // Handle case where employee field contains "employee" string
+                if (leave.employee === 'employee') {
+                    // Find user with name "employee"
+                    employeeDetails = await User.findOne({ name: 'employee' }).select('name role');
+                } else {
+                    // Handle normal ObjectId case
+                    employeeDetails = await User.findById(leave.employee).select('name role');
+                }
+                
+                return {
+                    ...leave.toObject(),
+                    employee: employeeDetails
+                };
+            })
+        );
+        
+        res.status(200).json(leavesWithEmployeeDetails);
 
     } catch (error) {
         console.error('Error retrieving leaves:', error);
@@ -124,8 +152,17 @@ const getLeaveById = async (req, res) => {
         const { id } = req.params;
         const userRole = req.user.role;
 
-        const leave = await Leave.findById(id)
-            .populate('employee', 'name role');
+        const leave = await Leave.findById(id);
+        
+        if (leave) {
+            let employeeDetails = null;
+            if (leave.employee === 'employee') {
+                employeeDetails = await User.findOne({ name: 'employee' }).select('name role');
+            } else {
+                employeeDetails = await User.findById(leave.employee).select('name role');
+            }
+            leave.employee = employeeDetails;
+        }
 
         if (!leave) {
             return res.status(404).json({ message: 'Leave request not found' });
@@ -217,8 +254,16 @@ const updateLeave = async (req, res) => {
 
         await leave.save();
 
-        const updatedLeave = await Leave.findById(id)
-            .populate('employee', 'name role');
+        const updatedLeave = await Leave.findById(id);
+        if (updatedLeave) {
+            let employeeDetails = null;
+            if (updatedLeave.employee === 'employee') {
+                employeeDetails = await User.findOne({ name: 'employee' }).select('name role');
+            } else {
+                employeeDetails = await User.findById(updatedLeave.employee).select('name role');
+            }
+            updatedLeave.employee = employeeDetails;
+        }
 
         res.status(200).json({
             message: 'Leave updated successfully',
