@@ -19,8 +19,8 @@
 ### 1. Clone the Repository
 
 ```bash
-git clone <repository-url>
-cd Leave_management_system_Backend
+git clone [<repository-url>](https://github.com/mewanDimalsha/Backend)
+cd Backend
 ```
 
 ### 2. Install Dependencies
@@ -35,7 +35,7 @@ Create a `.env` file in the root directory:
 
 ```env
 # Database Configuration
-# MONGO_URI=mongodb+srv://username:password@cluster.mongodb.net/leave_management_clean
+MONGO_URI=mongodb+srv://username:password@cluster.mongodb.net/leave_management_clean
 
 # JWT Configuration
 JWT_SECRET=your_super_secret_jwt_key_here
@@ -65,17 +65,17 @@ npm run test:watch
 npm run test:coverage
 ```
 
-The server will start on `http://localhost:5001` (or the PORT specified in your .env file).
+The server will start on `http://localhost:5001` (or the PORT in .env file).
 
 ## Sample Credentials
 
-### Admin User
+### Admin
 
 - **Username:** `admin`
 - **Password:** `admin123`
 - **Role:** `admin`
 
-### Regular User
+### Employee 
 
 - **Username:** `testuser`
 - **Password:** `password123`
