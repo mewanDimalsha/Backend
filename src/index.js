@@ -3,7 +3,7 @@ const dotenv = require('dotenv').config();
 const cors = require('cors');
 const dbConnect = require('./config/dbConnect');
 const authRoutes = require('./routes/authRoutes');
-const userRoutes = require('./routes/userRoutes');
+const leaveRoutes = require('./routes/leaveRoutes');
 
 // Connect to the database
 dbConnect();
@@ -17,9 +17,25 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Sample route
+// Routes
 app.use('/api/auth', authRoutes);
-app.use('/api/users', userRoutes);
+app.use('/api/leaves', leaveRoutes);
+
+// Health check route
+app.get('/api/health', (req, res) => {
+    res.json({ 
+        message: 'Leave Management System API is running',
+        timestamp: new Date().toISOString()
+    });
+});
+
+// 404 handler
+app.use((req, res) => {
+    res.status(404).json({ 
+        message: 'Route not found',
+        path: req.originalUrl
+    });
+});
 
 //start the server
 const PORT = process.env.PORT || 3001;
